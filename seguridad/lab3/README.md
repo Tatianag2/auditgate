@@ -7,27 +7,33 @@
 
 ---
 
-## 1. Preparación e Instalación del Gate (`auditgate doctor` y `auditgate init`)
+## 1. Preparación e Instalación del Gate (`auditgate doctor`, `auditgate init` y Branch Protection)
 
-Se configuró el entorno de ejecución Linux con **Auditgate**, **Semgrep**, **Gitleaks** y **OSV-Scanner**, y se inicializó el workflow [auditgate.yml](./auditgate.yml) fijado por SHA inmutable (`security-platform.yml@<sha>`) para proteger la cadena de suministro contra modificación de tags en GitHub Actions.
+Se configuró el entorno de ejecución Linux con **Auditgate**, **Semgrep**, **Gitleaks** y **OSV-Scanner**, se inicializó el workflow [auditgate.yml](./auditgate.yml) fijado por SHA inmutable (`security-platform.yml@07faee3bc9092019a8543b6168f72f3b963afcb6`) y se activó la regla de **Branch Protection** sobre `main` en GitHub exigiendo **`auditgate / 🚦 Security Gate`** como *required status check* antes de permitir cualquier merge.
 
-![Evidencia 1 - auditgate doctor](./evidencia_1_doctor.png)
+![Evidencia 1A - Branch Protection con Security Gate requerido en GitHub](./evidencia_7_branch_protection_github.jpg)
 
----
-
-## 2. Bloqueo Determinista ante una Falla Nueva (`auditgate scan` → `exit 1`)
-
-Para demostrar que el gate es **diff-aware** (evalúa únicamente los commits nuevos respecto al `merge-base` y bloquea cualquier vulnerabilidad nueva antes o durante el Pull Request), se creó la rama `feature/falla-demo` introduciendo un endpoint con **Inyección SQL por interpolación de f-string** (`buscar.py`). El gate ignoró la deuda histórica de `vulnerable_app/` y bloqueó únicamente el hallazgo nuevo (`buscar.py:12 · auditgate.flask.sqli-string-built-query`).
-
-![Evidencia 2 - auditgate scan bloqueado](./evidencia_2_bloqueado.png)
+![Evidencia 1B - auditgate doctor](./evidencia_1_doctor.png)
 
 ---
 
-## 3. Corrección del Control y Paso del Gate a Verde (`auditgate scan` → `exit 0`)
+## 2. Bloqueo Determinista ante una Falla Nueva (`auditgate scan` y PR #1 en GitHub Actions → `exit 1`)
 
-Siguiendo la remediación (reemplazar la interpolación `f"SELECT ... WHERE nombre = '{q}'"` por una consulta parametrizada `"SELECT ... WHERE nombre = ?", (q,)` acorde con **ASVS V1.2.4**), se realizó el commit de corrección y se volvió a ejecutar `auditgate scan`, pasando todos los controles (`secrets`, `sast`, `deps`, `actions`) a verde (`0 nuevos`).
+Para demostrar que el gate es **diff-aware** (evalúa únicamente los commits nuevos respecto al `merge-base` y bloquea cualquier vulnerabilidad nueva antes o durante el Pull Request), se creó la rama `feature/falla-demo` y el [**Pull Request #1 (`Tatianag2/auditgate#1`)**](https://github.com/Tatianag2/auditgate/pull/1) introduciendo un endpoint con **Inyección SQL por interpolación de f-string** (`buscar.py`). El gate ignoró la deuda histórica de `vulnerable_app/` y bloqueó únicamente el hallazgo nuevo (`buscar.py:12 · auditgate.flask.sqli-string-built-query`) tanto en CLI como en **GitHub Actions (`🚦 Security Gate — Failing`)**.
 
-![Evidencia 3 - auditgate scan verde](./evidencia_3_verde.png)
+![Evidencia 2A - Pull Request #1 bloqueado en rojo por Security Gate en GitHub Actions](./evidencia_5_pr_bloqueado_github.jpg)
+
+![Evidencia 2B - auditgate scan bloqueado en CLI](./evidencia_2_bloqueado.png)
+
+---
+
+## 3. Corrección del Control y Paso del Gate a Verde (`auditgate scan` y PR #1 en GitHub Actions → `exit 0`)
+
+Siguiendo la remediación (reemplazar la interpolación `f"SELECT ... WHERE nombre = '{q}'"` por una consulta parametrizada `"SELECT ... WHERE nombre = ?", (q,)` acorde con **ASVS V1.2.4**), se realizó el commit de corrección (`f575de3`) en el [**Pull Request #1**](https://github.com/Tatianag2/auditgate/pull/1), pasando todos los jobs del pipeline (`Secrets`, `SAST`, `Dependencies`, `IaC`, `Rules + Tests + Pipeline integrity` y **`🚦 Security Gate`**) a verde (`Success`).
+
+![Evidencia 3A - Pipeline de Auditgate y Security Gate en verde en GitHub Actions](./evidencia_6_pr_verde_github.png)
+
+![Evidencia 3B - auditgate scan verde en CLI](./evidencia_3_verde.png)
 
 ---
 
