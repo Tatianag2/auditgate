@@ -7,11 +7,13 @@
 
 ---
 
-## 1. Preparación e Instalación del Gate (`auditgate doctor` y `auditgate init`)
+## 1. Preparación e Instalación del Gate (`auditgate doctor`, `auditgate init` y Branch Protection)
 
-Se configuró el entorno de ejecución Linux con **Auditgate**, **Semgrep**, **Gitleaks** y **OSV-Scanner**, y se inicializó el workflow [auditgate.yml](./auditgate.yml) fijado por SHA inmutable (`security-platform.yml@<sha>`) para proteger la cadena de suministro contra modificación de tags en GitHub Actions.
+Se configuró el entorno de ejecución Linux con **Auditgate**, **Semgrep**, **Gitleaks** y **OSV-Scanner**, se inicializó el workflow [auditgate.yml](./auditgate.yml) fijado por SHA inmutable (`security-platform.yml@07faee3bc9092019a8543b6168f72f3b963afcb6`) y se activó la regla de **Branch Protection** sobre `main` en GitHub exigiendo **`auditgate / 🚦 Security Gate`** como *required status check* antes de permitir cualquier merge.
 
-![Evidencia 1 - auditgate doctor](./evidencia_1_doctor.png)
+![Evidencia 1A - Branch Protection con Security Gate requerido en GitHub](./evidencia_7_branch_protection_github.jpg)
+
+![Evidencia 1B - auditgate doctor](./evidencia_1_doctor.png)
 
 ---
 
